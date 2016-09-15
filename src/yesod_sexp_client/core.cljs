@@ -11,7 +11,7 @@
 
 ;; define your app data so that it doesn't get over-written on reload
 
-(defonce app-state (atom {:text "Hello world!"}))
+(defonce app-state (atom {:x-ratio 1, :y-ratio 1}))
 
 (defn- eval-str [s]
   (eval (empty-state)
@@ -22,7 +22,10 @@
         (fn [result] result)))
 
 (defn handler [response]
-  (println (eval-str response)))
+  (let [result (:value (eval-str response))
+        v      (vec result)]
+    (reset! app-state {:x-ratio (first  v),
+                      :y-ratio (second v)})))
 
 (GET "http://localhost:3000/"
     {:handler handler})
@@ -56,8 +59,8 @@
   (q/fill (:color state) 255 255)
   ; Calculate x and y coordinates of the circle.
   (let [angle (:angle state)
-        x (* 150 (q/cos angle))
-        y (* 150 (q/sin angle))]
+        x (* 150 (:x-ratio @app-state) (q/cos angle))
+        y (* 150 (:y-ratio @app-state) (q/sin angle))]
     ; Move origin point to the center of the sketch.
     (q/with-translation [(/ (q/width) 2)
                          (/ (q/height) 2)]
